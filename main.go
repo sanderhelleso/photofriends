@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // Similar as node.js express (req, res)
@@ -22,10 +24,15 @@ func handlerFunc(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+//
+func Hello(res http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(res, "hello, %s!\n", ps.ByName("name"))
+}
+
 func main() {
-	mux := &http.ServeMux{}
-	mux.HandleFunc("/", handlerFunc)
+	router := httprouter.New()
+	router.GET("/hello/:name", Hello)
 
 	//http.HandleFunc("/", handlerFunc) // route and matched content
-	http.ListenAndServe(":3000", mux) // port to serve (nil = NULLPOINTER)
+	http.ListenAndServe(":3000", router) // port to serve (nil = NULLPOINTER)
 }
