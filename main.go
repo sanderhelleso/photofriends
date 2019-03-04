@@ -23,6 +23,9 @@ func handlerFunc(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", handlerFunc) // route and matched content
-	http.ListenAndServe(":3000", nil) // port to serve (nil = NULLPOINTER)
+	mux := &http.ServeMux{}
+	mux.HandleFunc("/", handlerFunc)
+
+	//http.HandleFunc("/", handlerFunc) // route and matched content
+	http.ListenAndServe(":3000", mux) // port to serve (nil = NULLPOINTER)
 }
