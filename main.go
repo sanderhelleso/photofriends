@@ -3,15 +3,21 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"text/template"
 
 	"github.com/gorilla/mux"
 )
 
 // Similar as node.js express (req, res)
 // Send back data to matched path using the writer(res)
+
+var homeTemplate *template.Template
+
 func home(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(res, "<h1>Welcome to my awesome site!</h1>")
+	if err := homeTemplate.Execute(res, nil); err != nil {
+		panic(err)
+	}
 }
 
 func contact(res http.ResponseWriter, req *http.Request) {
@@ -31,6 +37,15 @@ func notFound(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+
+	// template setup
+	var err error
+	homeTemplate, err = template.ParseFiles("views/home.gohtml")
+	if err != nil {
+		panic(err)
+	}
+
+	// router & path config
 	router := mux.NewRouter()                           // router
 	router.NotFoundHandler = http.HandlerFunc(notFound) // 404 not found
 	router.HandleFunc("/", home)                        // home
