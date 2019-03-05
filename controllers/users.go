@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"../../photofriends/views"
+	"../../photofriends/models"
 	"github.com/gorilla/schema"
 	"net/http"
 	"fmt"
@@ -11,14 +12,16 @@ import (
 // this function will panic if the templates are not
 // passed correctly, and should only be used during
 // initial setup
-func NewUsers() *Users {
+func NewUsers(us *models.UserService) *Users {
 	return &Users{
 		NewView: views.NewView("layout", "users/new"),
+		us: us,
 	}
 }
 
 type Users struct {
 	NewView *views.View
+	us  models.UserService
 }
 
 type SignupForm struct {
@@ -50,5 +53,15 @@ func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
 	if err := dec.Decode(&form, req.PostForm); err != nil {
 		panic(err)
 	}
+
+	user := models.User {
+		Name : "",
+		Email: form.Email,
+	}
+	if err := u.us.Create(&user); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	fmt.Fprintln(res, form)
 }
