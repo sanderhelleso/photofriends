@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"bufio"
+	"os"
+	"strings"
 
 	"github.com/jinzhu/gorm"
   	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -36,7 +39,31 @@ func main() {
 	}
 
 	//db.DropTableIfExists($User{})
-	//db.AutoMigrate(&User{}) // automigrates the user struct as table
+	db.LogMode(true)
+	db.AutoMigrate(&User{}) // automigrates the user struct as table
+
+	name, email := getInfo()
+	user := User {
+		Name: name,
+		Email: email,
+	}
+
+	if err := db.Create(&user).Error; err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v\n", user)
+}
+
+func getInfo() (name, email string) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("What is your name?")
+	name, _ = reader.ReadString('\n')
+	fmt.Println("What is your email?")
+	email, _ = reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+	email = strings.TrimSpace(email)
+	return;
 }
 
 /*CREATE TABLE users (
