@@ -34,10 +34,10 @@ func main() {
 		panic(err)
 	}
 
-	user.Email = "sander@gmail.com"
-	if err := us.Update(&user); err != nil {
+	if err := us.Delete(user.ID); err != nil {
 		panic(err)
 	}
+
 
 	userByID, err := us.ByID(user.ID)
 	if err != nil { panic(err) }
