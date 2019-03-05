@@ -1,15 +1,19 @@
 package views
 
-import "html/template"
+import (
+	"html/template"
+	"path/filepath"
+)
+
+var  (
+	layoutDir 	= "views/layouts/"
+	templateExt = ".gohtml"
+)
 
 // note the "...string" syntax, it means that the function
 // can take in "n" amount of arguments of the type string
 func NewView(layout string, files ...string) *View {
-	files = append(files, 
-		"views/layouts/layout.gohtml",
-		"views/layouts/navbar.gohtml",
-		"views/layouts/footer.gohtml",
-	)
+	files = append(files, layoutFiles()...)
 
 	t, err := template.ParseFiles(files...) // spread strings from arr
 	if err != nil { panic(nil) }
@@ -26,4 +30,14 @@ func NewView(layout string, files ...string) *View {
 type View struct {
 	Layout string
 	Template *template.Template
+}
+
+// layout files return a slice of strings
+// representing the layout files used in
+// our application using globbing
+func layoutFiles() []string {
+	files, err := filepath.Glob(layoutDir + "*" + templateExt)
+	if err != nil { panic(err) }
+	
+	return files;
 }
