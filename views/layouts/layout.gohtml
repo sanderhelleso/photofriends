@@ -1,0 +1,15 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Photofriends</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <main class="container"> 
+            {{template "yield" .}}
+        </main>
+        {{template "footer"}}
+    </body>
+</html>
+{{end}}

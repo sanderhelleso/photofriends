@@ -19,13 +19,13 @@ var (
 // Send back data to matched path using the writer(res)
 func home(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html")
-	err := homeView.Template.Execute(res, nil)
+	err := homeView.Template.ExecuteTemplate(res, homeView.Layout, nil)
 	if err != nil { panic(err) }
 }
 
 func contact(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html")
-	err := contactView.Template.Execute(res, nil)
+	err := contactView.Template.ExecuteTemplate(res, contactView.Layout, nil)
 	if err != nil { panic(err) }
 }
 
@@ -37,14 +37,14 @@ func faq(res http.ResponseWriter, req *http.Request) {
 func notFound(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-type", "text/html")
 	res.WriteHeader(http.StatusNotFound)
-	fmt.Fprint(res, "<p>404 page not found")
+	fmt.Fprint(res, "<p>404 page not found</p>")
 }
 
 func main() {
 
 	// view setup
-	homeView = views.NewView("views/home.gohtml")
-	contactView = views.NewView("views/contact.gohtml")
+	homeView = views.NewView("layout", "views/home.gohtml")
+	contactView = views.NewView("layout", "views/contact.gohtml")
 
 	// router & path config
 	router := mux.NewRouter()                           // router
