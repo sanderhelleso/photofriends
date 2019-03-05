@@ -19,14 +19,12 @@ var (
 // Send back data to matched path using the writer(res)
 func home(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html")
-	err := homeView.Template.ExecuteTemplate(res, homeView.Layout, nil)
-	if err != nil { panic(err) }
+	must(homeView.Render(res, nil))
 }
 
 func contact(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html")
-	err := contactView.Template.ExecuteTemplate(res, contactView.Layout, nil)
-	if err != nil { panic(err) }
+	must(contactView.Render(res, nil))
 }
 
 func faq(res http.ResponseWriter, req *http.Request) {
@@ -53,4 +51,11 @@ func main() {
 	router.HandleFunc("/contact", contact)              // contact
 	router.HandleFunc("/fag", faq)                      // faq
 	http.ListenAndServe(":3000", router)                // port to serve (nil = NULLPOINTER)
+}
+
+// panic if ANY error is present
+func must(err error) {
+	if err != nil {
+		panic(err);
+	}
 }
