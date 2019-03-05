@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"../../photofriends/views"
+	"github.com/gorilla/schema"
 	"net/http"
 	"fmt"
 )
@@ -16,9 +17,13 @@ func NewUsers() *Users {
 	}
 }
 
-// users struct containing the releated view
 type Users struct {
 	NewView *views.View
+}
+
+type SignupForm struct {
+	Email 	 string `schema:"email"`
+	Password string `schema:"password"`
 }
 
 // New is used to render the form where a user can
@@ -40,9 +45,10 @@ func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	fmt.Fprintln(res, req.PostForm["email"])
-	fmt.Fprintln(res, req.PostFormValue("email"))
-	fmt.Fprintln(res, req.PostForm["password"])
-	fmt.Fprintln(res, req.PostFormValue("password"))
-	fmt.Fprintln(res, "This is a temp response")
+	dec := schema.NewDecoder()
+	var form SignupForm
+	if err := dec.Decode(&form, req.PostForm); err != nil {
+		panic(err)
+	}
+	fmt.Fprintln(res, form)
 }
