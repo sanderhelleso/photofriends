@@ -36,5 +36,13 @@ func (u *Users) New(res http.ResponseWriter, req *http.Request) {
 //
 // POST /signup
 func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
+	if err := req.ParseForm(); err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(res, req.PostForm["email"])
+	fmt.Fprintln(res, req.PostFormValue("email"))
+	fmt.Fprintln(res, req.PostForm["password"])
+	fmt.Fprintln(res, req.PostFormValue("password"))
 	fmt.Fprintln(res, "This is a temp response")
 }
