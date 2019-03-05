@@ -7,6 +7,7 @@ import "html/template"
 func NewView(layout string, files ...string) *View {
 	files = append(files, 
 		"views/layouts/layout.gohtml",
+		"views/layouts/navbar.gohtml",
 		"views/layouts/footer.gohtml",
 	)
 
