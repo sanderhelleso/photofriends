@@ -10,7 +10,7 @@ import (
 
 func main() {
 	staticC := controllers.NewStatic()
-	usersC := controllers.NewUsers()
+	usersC  := controllers.NewUsers()
 
 	// router & path config
 	// note the "Methods", it specify that 
