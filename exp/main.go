@@ -1,10 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 const (
@@ -19,37 +18,15 @@ const (
 func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 	host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
+
+	db, err := gorm.Open("postgres", psqlInfo)
+	
 	if err != nil { panic(err) }
+
 	defer db.Close()
-
-	type User struct {
-		ID int
-		Name string
-		Email string
-	}
-
-	var users []User
-
-	rows, err := db.Query(`
-		SELECT id, name, email
-		FROM users`)
-
-	if err != nil {
+	if err := db.DB().Ping(); err != nil {
 		panic(err)
 	}
-
-	defer rows.Close()
-	for rows.Next() {
-		var user User
-		err := rows.Scan(&user.ID, &user.Name, &user.Email)
-		if err != nil {
-			panic(err)
-		}
-
-		users = append(users, user)
-	}
-	fmt.Println(users)
 }
 
 /*CREATE TABLE users (
