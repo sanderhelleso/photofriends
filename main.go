@@ -8,11 +8,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// template initializing
+var (
+	homeTemplate    *template.Template
+	contactTemplate *template.Template
+)
+
 // Similar as node.js express (req, res)
 // Send back data to matched path using the writer(res)
-
-var homeTemplate *template.Template
-
 func home(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html")
 	if err := homeTemplate.Execute(res, nil); err != nil {
@@ -22,7 +25,9 @@ func home(res http.ResponseWriter, req *http.Request) {
 
 func contact(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(res, "To get in touch, please send an email to <a href=\"mailto:support@photofriends.com\">support@photofriends.com</a>.")
+	if err := contactTemplate.Execute(res, nil); err != nil {
+		panic(err)
+	}
 }
 
 func faq(res http.ResponseWriter, req *http.Request) {
@@ -41,6 +46,11 @@ func main() {
 	// template setup
 	var err error
 	homeTemplate, err = template.ParseFiles("views/home.gohtml")
+	if err != nil {
+		panic(err)
+	}
+
+	contactTemplate, err = template.ParseFiles("views/contact.gohtml")
 	if err != nil {
 		panic(err)
 	}
