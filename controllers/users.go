@@ -3,6 +3,7 @@ package controllers
 import (
 	"../../photofriends/views"
 	"net/http"
+	"fmt"
 )
 
 // NewUsers is uused to create a new Users controller
@@ -20,9 +21,20 @@ type Users struct {
 	NewView *views.View
 }
 
-// method that automaticly pass in a Users pointer on call
+// New is used to render the form where a user can
+// create a new user account
+//
+// GET /signup
 func (u *Users) New(res http.ResponseWriter, req *http.Request) {
 	if err := u.NewView.Render(res, nil); err != nil {
 		panic(err)
 	}
+}
+
+// Create is used to process the signup form when a user
+// submits the form. This is used to create a new user account
+//
+// POST /signup
+func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
+	fmt.Fprintln(res, "This is a temp response")
 }

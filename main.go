@@ -28,11 +28,6 @@ func contact(res http.ResponseWriter, req *http.Request) {
 	must(contactView.Render(res, nil))
 }
 
-func faq(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(res, "Frequently asked questions: Comming Soon")
-}
-
 func notFound(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-type", "text/html")
 	res.WriteHeader(http.StatusNotFound)
@@ -47,13 +42,15 @@ func main() {
 	usersC := controllers.NewUsers()
 
 	// router & path config
-	router := mux.NewRouter()                           // router
-	router.NotFoundHandler = http.HandlerFunc(notFound) // 404 not found
-	router.HandleFunc("/", home)                        // home
-	router.HandleFunc("/contact", contact) 
-	router.HandleFunc("/signup", usersC.New)             // contact
-	router.HandleFunc("/fag", faq)                      // faq
-	http.ListenAndServe(":3000", router)                // port to serve (nil = NULLPOINTER)
+	// note the "Methods", it specify that 
+	// only the sat requests types are allowed
+	router := mux.NewRouter() // router
+	router.NotFoundHandler = http.HandlerFunc(notFound) 
+	router.HandleFunc("/", home).Methods("GET")                     
+	router.HandleFunc("/contact", contact).Methods("GET")
+	router.HandleFunc("/signup", usersC.New).Methods("GET") 
+	router.HandleFunc("/signup", usersC.Create).Methods("POST")
+	http.ListenAndServe(":3000", router)  // port to serve (nil = NULLPOINTER)
 }
 
 // panic if ANY error is present
