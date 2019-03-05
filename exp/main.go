@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/jinzhu/gorm"
+  	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 const (
@@ -14,6 +15,12 @@ const (
 
 	dbname 	 = "photofriends_dev"
 )
+
+type User struct {
+	gorm.Model
+	Name string
+	Email string
+}
 
 func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -27,6 +34,9 @@ func main() {
 	if err := db.DB().Ping(); err != nil {
 		panic(err)
 	}
+
+	//db.DropTableIfExists($User{})
+	//db.AutoMigrate(&User{}) // automigrates the user struct as table
 }
 
 /*CREATE TABLE users (
