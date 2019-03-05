@@ -51,6 +51,12 @@ func (us *UserService) Create(user *User) error {
 	return us.db.Create(user).Error
 }
 
+// will update the provided user with all of the
+// data in the provided user object
+func (us *UserService) Update(user *User) error {
+	return us.db.Save(user).Error
+}
+
 // closes the UserService database connection
 func (us *UserService) Close() error {
 	return us.db.Close()
