@@ -23,18 +23,33 @@ func main() {
 	if err != nil { panic(err) }
 	defer db.Close()
 
-	var id int
-	err = db.QueryRow(`
-		INSERT INTO users(name, email)
-		VALUES ($1, $2)
-		RETURNING id`, 
-		"John Doe", "johndoe@gmail.com").Scan(&id)
+	type User struct {
+		ID int
+		Name string
+		Email string
+	}
+
+	var users []User
+
+	rows, err := db.Query(`
+		SELECT id, name, email
+		FROM users`)
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("new id is...", id)
+	defer rows.Close()
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.ID, &user.Name, &user.Email)
+		if err != nil {
+			panic(err)
+		}
+
+		users = append(users, user)
+	}
+	fmt.Println(users)
 }
 
 /*CREATE TABLE users (
