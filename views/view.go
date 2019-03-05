@@ -8,9 +8,7 @@ func NewView(files ...string) *View {
 	files = append(files, "views/layouts/footer.gohtml")
 
 	t, err := template.ParseFiles(files...) // spread strings from arr
-	if err != nil {
-		panic(nil)
-	}
+	if err != nil { panic(nil) }
 
 	return &View{
 		Template: t,
