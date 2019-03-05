@@ -20,7 +20,7 @@ const (
 )
 
 type User struct {
-	gorm.Model
+	gorm.Model // id, created at, deleted at, updated at
 	Name string
 	Email string
 }
@@ -57,12 +57,15 @@ func main() {
 
 func getInfo() (name, email string) {
 	reader := bufio.NewReader(os.Stdin)
+
 	fmt.Println("What is your name?")
 	name, _ = reader.ReadString('\n')
 	fmt.Println("What is your email?")
 	email, _ = reader.ReadString('\n')
+
 	name = strings.TrimSpace(name)
 	email = strings.TrimSpace(email)
+
 	return;
 }
 
