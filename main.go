@@ -39,8 +39,10 @@ func main() {
 	router := mux.NewRouter() // router
 	router.Handle("/", staticC.Home).Methods("GET")
 	router.Handle("/contact", staticC.Contact).Methods("GET")
-	router.HandleFunc("/signup", usersC.New).Methods("GET") 
+	router.Handle("/signup", usersC.NewView).Methods("GET") 
 	router.HandleFunc("/signup", usersC.Create).Methods("POST")
+	router.Handle("/login", usersC.LoginView).Methods("GET") 
+	router.HandleFunc("/login", usersC.Login).Methods("POST")
 	http.ListenAndServe(":3000", router) // port to serve (nil = NULLPOINTER)
 }
 

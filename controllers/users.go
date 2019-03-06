@@ -15,29 +15,21 @@ import (
 func NewUsers(us *models.UserService) *Users {
 	return &Users{
 		NewView: views.NewView("layout", "users/new"),
+		LoginView: views.NewView("layout", "users/login"),
 		us: us,
 	}
 }
 
 type Users struct {
-	NewView *views.View
-	us  *models.UserService
+	NewView 	*views.View
+	LoginView   *views.View
+	us  		*models.UserService
 }
 
 type SignupForm struct {
 	Name	 string	`schema:"name"`
 	Email 	 string `schema:"email"`
 	Password string `schema:"password"`
-}
-
-// New is used to render the form where a user can
-// create a new user account
-//
-// GET /signup
-func (u *Users) New(res http.ResponseWriter, req *http.Request) {
-	if err := u.NewView.Render(res, nil); err != nil {
-		panic(err)
-	}
 }
 
 // Create is used to process the signup form when a user
@@ -67,4 +59,27 @@ func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Fprintln(res, user)
+}
+
+type LoginForm struct {
+	Email 	 string `schema:"email"`
+	Password string `schema:"password"`
+}
+
+// Login is used to verify the provided email address and password
+// and then log the user in if the provided info is correct
+//
+// POST /login
+func (u *Users) Login(res http.ResponseWriter, req *http.Request) {
+	if err := req.ParseForm(); err != nil {
+		panic(err)
+	}
+
+	dec := schema.NewDecoder()
+	var form LoginForm
+	if err := dec.Decode(&form, req.PostForm); err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(res, form)
 }

@@ -1,0 +1,26 @@
+{{define "yield"}}
+<form action="/login" method="POST">
+    <div class="field">
+        <label class="label">E-mail</label>
+        <div class="control">
+            <input class="input" type="email" name="email" placeholder="johndoe@gmail.com">
+        </div>
+    </div>
+    <label class="label">Password</label>
+    <div class="control">
+        <input class="input" type="password" name="password" placeholder="****************">
+    </div>
+    </div>
+    <div class="field">
+        <div class="control">
+            <label class="checkbox">
+                <input type="checkbox">
+                I agree to the <a href="#">terms and conditions</a>
+            </label>
+        </div>
+    </div>
+    <div class="control">
+        <button class="button is-link">Log In!</button>
+    </div>
+</form>
+{{end}}
