@@ -2,15 +2,35 @@ package main
 
 import (
 	"net/http"
-
+	"fmt"
+	"../photofriends/models"
 	"../photofriends/controllers"
 
 	"github.com/gorilla/mux"
 )
 
+const (
+	host 	 = "localhost"
+	port 	 = 5432
+	user	 = "postgres"
+	password = "postgres"
+
+	dbname 	 = "photofriends_dev"
+)
+
+
 func main() {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+	host, port, user, password, dbname)
+
+	us, err := models.NewUserService(psqlInfo)
+	must(err)
+
+	defer us.Close()
+	us.AutoMigrate()
+
 	staticC := controllers.NewStatic()
-	usersC  := controllers.NewUsers()
+	usersC  := controllers.NewUsers(us)
 
 	// router & path config
 	// note the "Methods", it specify that 

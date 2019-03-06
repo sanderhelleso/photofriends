@@ -21,10 +21,11 @@ func NewUsers(us *models.UserService) *Users {
 
 type Users struct {
 	NewView *views.View
-	us  models.UserService
+	us  *models.UserService
 }
 
 type SignupForm struct {
+	Name	 string	`schema:"name"`
 	Email 	 string `schema:"email"`
 	Password string `schema:"password"`
 }
@@ -55,9 +56,10 @@ func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
 	}
 
 	user := models.User {
-		Name : "",
+		Name : form.Name,
 		Email: form.Email,
 	}
+	
 	if err := u.us.Create(&user); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return

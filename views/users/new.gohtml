@@ -1,6 +1,12 @@
 {{define "yield"}}
 <form action="/signup" method="POST">
     <div class="field">
+        <label class="label">Name</label>
+        <div class="control">
+            <input class="input" type="text" name="name" placeholder="John Doe">
+        </div>
+    </div>
+    <div class="field">
         <label class="label">E-mail</label>
         <div class="control">
             <input class="input" type="email" name="email" placeholder="johndoe@gmail.com">
