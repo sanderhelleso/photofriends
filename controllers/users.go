@@ -4,6 +4,7 @@ import (
 	"../../photofriends/views"
 	"../../photofriends/models"
 	"github.com/gorilla/schema"
+	"../../photofriends/rand"
 	"net/http"
 	"fmt"
 )
@@ -58,7 +59,12 @@ func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	signIn(res, req, &user)
+	err := u.signIn(res, &user)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(res, req, "/cookietest", http.StatusFound)
 }
 
 type LoginForm struct {
@@ -93,26 +99,46 @@ func (u *Users) Login(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	signIn(res, req, user)
+	err = u.signIn(res, user)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(res, req, "/cookietest", http.StatusFound)
 }
 
 // signIn is used to sign in the given user in via cookies
-func signIn(res http.ResponseWriter, req *http.Request, user *models.User) {
+func (u *Users) signIn(res http.ResponseWriter, user *models.User) error {
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+
+		user.Remember = token
+		err = u.us.Update(user)
+	}
+
 	cookie := http.Cookie {
-		Name: "email",
-		Value: user.Email,
+		Name: "remember_token",
+		Value: user.Remember,
 	}
 	http.SetCookie(res, &cookie)
-	http.Redirect(res, req, "/cookietest", http.StatusFound)
+	return nil
 }
 
 // CookieTest is used to display cookies on the current user
 func (u *Users) CookieTest(res http.ResponseWriter, req *http.Request) {
-	cookie, err := req.Cookie("email")
+	cookie, err := req.Cookie("remember_token")
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Fprintln(res, "Email is:", cookie.Value)
+	user, err := u.us.ByRemember(cookie.Value)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintln(res, user)
 }
