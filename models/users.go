@@ -26,13 +26,17 @@ var (
 	// is used when attempting to authenticate a user
 	ErrInvalidPassword = errors.New("Incorrect password provided")
 
-	// ErrEmailRequires is returned when an email address
+	// ErrEmailRequired is returned when an email address
 	// is not provided when creating a user
 	ErrEmailRequired = errors.New("Email address is required")
 
 	// ErrEmailInvalid is returned when an email address provided
 	// does not match any of our requirements
 	ErrEmailInvalid = errors.New("Email address is not valid")
+
+	// ErrEmailTaken is returned when an update or create
+	// is attempted with an email address that is already in use
+	ErrEmailTaken = errors.New("Email address is already taken")
 )
 
 const (
@@ -99,10 +103,7 @@ func NewUserService(connectionInfo string) (UserService, error) {
 	}
 
 	hmac := hash.NewHMAC(hmacSecretKey)
-	uv := &userValidator{
-		hmac:   hmac,
-		UserDB: ug,
-	}
+	uv := newUserValidator(ug, hmac)
 	return &userService{
 		UserDB: uv,
 	}, nil
@@ -217,7 +218,8 @@ func (uv *userValidator) Create(user *User) error {
 		uv.hmacRemember,
 		uv.normalizeEmail,
 		uv.emailFormat,
-		uv.requireEmail)
+		uv.requireEmail,
+		uv.emailFormat)
 
 	if err != nil {
 		return err
@@ -233,7 +235,8 @@ func (uv *userValidator) Update(user *User) error {
 		uv.hmacRemember,
 		uv.normalizeEmail,
 		uv.emailFormat,
-		uv.requireEmail)
+		uv.requireEmail,
+		uv.emailIsAvail)
 
 	if err != nil {
 		return err
@@ -324,6 +327,28 @@ func (uv *userValidator) requireEmail(user *User) error {
 func (uv *userValidator) emailFormat(user *User) error {
 	if !uv.emailRegex.MatchString(user.Email) {
 		return ErrEmailInvalid
+	}
+
+	return nil
+}
+
+func (uv *userValidator) emailIsAvail(user *User) error {
+	existing, err := uv.ByEmail(user.Email)
+
+	if err == ErrNotFound {
+		// email address is not taken
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// we found a user with this email address...
+	// If the found user has the same ID as this user,
+	// it is an update and this is the same user of email
+	if user.ID != existing.ID {
+		return ErrEmailTaken
 	}
 
 	return nil
