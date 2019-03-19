@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 
+	"regexp"
+
 	"../../photofriends/hash"
 	"../../photofriends/rand"
 	"github.com/jinzhu/gorm"
@@ -14,15 +16,23 @@ import (
 var (
 	// ErrNotFound is returned when a resource
 	// cannot be found in the database
-	ErrNotFound = errors.New("models: resource not found")
+	ErrNotFound = errors.New("Resource not found")
 
 	// ErrInvalidID is returned when an invalid ID is
 	// provided to a method like Delete
-	ErrInvalidID = errors.New("models: ID provided was invalid")
+	ErrInvalidID = errors.New("ID provided was invalid")
 
 	// ErrInvalidPassword is returned when an invalid password
 	// is used when attempting to authenticate a user
-	ErrInvalidPassword = errors.New("models: incorrect password provided")
+	ErrInvalidPassword = errors.New("Incorrect password provided")
+
+	// ErrEmailRequires is returned when an email address
+	// is not provided when creating a user
+	ErrEmailRequired = errors.New("Email address is required")
+
+	// ErrEmailInvalid is returned when an email address provided
+	// does not match any of our requirements
+	ErrEmailInvalid = errors.New("Email address is not valid")
 )
 
 const (
@@ -152,9 +162,21 @@ func runUsersValFuncs(user *User, fns ...userValFunc) error {
 	return nil
 }
 
+func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
+	return &userValidator{
+		UserDB: udb,
+		hmac:   hmac,
+
+		// emailRegex is used to match email addresses.
+		// It is not perfect, but works well enough for now
+		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`),
+	}
+}
+
 type userValidator struct {
 	UserDB
-	hmac hash.HMAC
+	hmac       hash.HMAC
+	emailRegex *regexp.Regexp
 }
 
 // ByEmail will normalize the email address before
@@ -166,6 +188,7 @@ func (uv *userValidator) ByEmail(email string) (*User, error) {
 
 	err := runUsersValFuncs(&user,
 		uv.normalizeEmail,
+		uv.emailFormat,
 		uv.requireEmail)
 
 	if err != nil {
@@ -193,6 +216,7 @@ func (uv *userValidator) Create(user *User) error {
 		uv.setRmemberIfUnset,
 		uv.hmacRemember,
 		uv.normalizeEmail,
+		uv.emailFormat,
 		uv.requireEmail)
 
 	if err != nil {
@@ -208,6 +232,7 @@ func (uv *userValidator) Update(user *User) error {
 		uv.bcryptPassword,
 		uv.hmacRemember,
 		uv.normalizeEmail,
+		uv.emailFormat,
 		uv.requireEmail)
 
 	if err != nil {
@@ -290,7 +315,15 @@ func (uv *userValidator) normalizeEmail(user *User) error {
 
 func (uv *userValidator) requireEmail(user *User) error {
 	if user.Email == "" {
-		return errors.New("Email address is required")
+		return ErrEmailRequired
+	}
+
+	return nil
+}
+
+func (uv *userValidator) emailFormat(user *User) error {
+	if !uv.emailRegex.MatchString(user.Email) {
+		return ErrEmailInvalid
 	}
 
 	return nil
