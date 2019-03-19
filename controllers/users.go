@@ -93,7 +93,7 @@ func (u *Users) Login(res http.ResponseWriter, req *http.Request) {
 		switch err {
 		case models.ErrNotFound:
 			fmt.Fprintln(res, "Invalid email address.")
-		case models.ErrInvalidPassword:
+		case models.ErrPasswordIncorrect:
 			fmt.Fprintln(res, "Invalid password provided.")
 		default:
 			http.Error(res, err.Error(), http.StatusInternalServerError)
