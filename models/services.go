@@ -11,10 +11,33 @@ func NewServices(connectionInfo string) (*Services, error) {
 	db.LogMode(true)
 	return &Services{
 		User: NewUserService(db),
+		db:   db,
 	}, nil
 }
 
 type Services struct {
 	Gallery GalleryService
 	User    UserService
+	db      *gorm.DB
+}
+
+// Close closes the  database connection
+func (s *Services) Close() error {
+	return s.db.Close()
+}
+
+// DestructiveReset drops all tables and rebuilds it
+func (s *Services) DestructiveReset() error {
+	err := s.db.DropTableIfExists(&User{}, &Gallery{}).Error
+	if err != nil {
+		return err
+	}
+
+	return s.AutoMigrate()
+}
+
+// AutoMigrate will attempt to automatically migrate all tables
+func (s *Services) AutoMigrate() error {
+	err := s.db.AutoMigrate(&User{}, &Gallery{}).Error
+	return err
 }
