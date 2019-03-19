@@ -11,12 +11,12 @@ const RememberTokenBytes = 32
 // or will return an error if there was one
 // This uses the crypto/rand package so it
 // it safe to use with things like remember tokens
-func Bytes (n int) ([]byte, error) {
+func Bytes(n int) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
-	if err != nil { 
-		return nil, err 
-	
+	if err != nil {
+		return nil, err
+
 	}
 
 	return b, nil
