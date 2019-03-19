@@ -1,35 +1,36 @@
 package controllers
 
 import (
-	"../../photofriends/views"
-	"../../photofriends/models"
-	"github.com/gorilla/schema"
-	"../../photofriends/rand"
-	"net/http"
 	"fmt"
+	"net/http"
+
+	"../../photofriends/models"
+	"../../photofriends/rand"
+	"../../photofriends/views"
+	"github.com/gorilla/schema"
 )
 
 // NewUsers is uused to create a new Users controller
 // this function will panic if the templates are not
 // passed correctly, and should only be used during
 // initial setup
-func NewUsers(us *models.UserService) *Users {
+func NewUsers(us models.UserService) *Users {
 	return &Users{
-		NewView: views.NewView("layout", "users/new"),
+		NewView:   views.NewView("layout", "users/new"),
 		LoginView: views.NewView("layout", "users/login"),
-		us: us,
+		us:        us,
 	}
 }
 
 type Users struct {
-	NewView 	*views.View
-	LoginView   *views.View
-	us  		*models.UserService
+	NewView   *views.View
+	LoginView *views.View
+	us        models.UserService
 }
 
 type SignupForm struct {
-	Name	 string	`schema:"name"`
-	Email 	 string `schema:"email"`
+	Name     string `schema:"name"`
+	Email    string `schema:"email"`
 	Password string `schema:"password"`
 }
 
@@ -48,12 +49,12 @@ func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	user := models.User {
-		Name : form.Name,
-		Email: form.Email,
+	user := models.User{
+		Name:     form.Name,
+		Email:    form.Email,
 		Password: form.Password,
 	}
-	
+
 	if err := u.us.Create(&user); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
@@ -68,7 +69,7 @@ func (u *Users) Create(res http.ResponseWriter, req *http.Request) {
 }
 
 type LoginForm struct {
-	Email 	 string `schema:"email"`
+	Email    string `schema:"email"`
 	Password string `schema:"password"`
 }
 
@@ -119,9 +120,9 @@ func (u *Users) signIn(res http.ResponseWriter, user *models.User) error {
 		err = u.us.Update(user)
 	}
 
-	cookie := http.Cookie {
-		Name: "remember_token",
-		Value: user.Remember,
+	cookie := http.Cookie{
+		Name:     "remember_token",
+		Value:    user.Remember,
 		HttpOnly: true,
 	}
 	http.SetCookie(res, &cookie)
