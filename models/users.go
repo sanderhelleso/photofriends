@@ -2,11 +2,12 @@ package models
 
 import (
 	"errors"
-	"golang.org/x/crypto/bcrypt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+
 	"../../photofriends/hash"
 	"../../photofriends/rand"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -24,25 +25,51 @@ var (
 )
 
 const (
-	userPwPepper 	= "secret-random-string"
-	hmacSecretKey 	= "secrey-hmac-key"
+	userPwPepper  = "secret-random-string"
+	hmacSecretKey = "secrey-hmac-key"
 )
+
+// UserDB is used to interact with the users database
+//
+// For all single user queries:
+// 1 - user, nil 		- User found
+// 2 - nil, ErrNotFound	- User not found
+// 3 - nil, otherError  - Database error
+type UserDB interface {
+
+	// Methods for quering for single users
+	ByID(id uint) (*User, error)
+	ByEmail(email string) (*User, error)
+	ByRemember(token string) (*User, error)
+
+	// methods for altering users
+	Create(user *User) error
+	Update(user *User) error
+	Delete(id uint) error
+
+	// used to close db connection
+	Close() error
+
+	// migration helpers
+	AutoMigrate() error
+	DestructiveReset() error
+}
 
 func NewUserService(connectionInfo string) (*UserService, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
-	if err != nil {	
+	if err != nil {
 		return nil, err
 	}
 
 	hmac := hash.NewHMAC(hmacSecretKey)
-	return &UserService {
-		db:	  db,
+	return &UserService{
+		db:   db,
 		hmac: hmac,
 	}, nil
 }
 
 type UserService struct {
-	db *gorm.DB
+	db   *gorm.DB
 	hmac hash.HMAC
 }
 
@@ -52,7 +79,7 @@ type UserService struct {
 // 2 - nil, ErrNotFound	- User not found
 // 3 - nil, otherError  - Database error
 func (us *UserService) ByID(id uint) (*User, error) {
-	var user User 
+	var user User
 	db := us.db.Where("id = ?", id)
 	err := first(db, &user)
 	return &user, err
@@ -65,19 +92,18 @@ func (us *UserService) ByID(id uint) (*User, error) {
 // 2 - nil, ErrNotFound	- User not found
 // 3 - nil, otherError  - Database error
 func (us *UserService) ByEmail(email string) (*User, error) {
-	var user User 
+	var user User
 	db := us.db.Where("email = ?", email)
 	err := first(db, &user)
 	return &user, err
 }
-
 
 // ByRemember looks up a user with the given remember token
 // and returns that user. This method will hanlde hansing
 // the token for us. Err are the same as ByEmail
 func (us *UserService) ByRemember(token string) (*User, error) {
 	var user User
-	rememberHash := us.hmac.Hash(token)	
+	rememberHash := us.hmac.Hash(token)
 	err := first(us.db.Where("remember_hash = ?", rememberHash), &user)
 	if err != nil {
 		return nil, err
@@ -86,7 +112,7 @@ func (us *UserService) ByRemember(token string) (*User, error) {
 }
 
 // Authenticate can be used to authenticate a user with the provided
-// email address and password. 
+// email address and password.
 //	If the email address
 // 		provided is invald, this will return nil, ErrNotFound
 // 	If the password provided is invalid, this will return
@@ -101,7 +127,7 @@ func (us *UserService) Authenticate(email, password string) (*User, error) {
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password + userPwPepper))
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+userPwPepper))
 	if err != nil {
 		switch err {
 		case bcrypt.ErrMismatchedHashAndPassword:
@@ -116,11 +142,11 @@ func (us *UserService) Authenticate(email, password string) (*User, error) {
 
 // first will query using the provided gorm.DB and it
 // will get the first item returned and place it into
-// dst. If nothing is found in the query, it will 
+// dst. If nothing is found in the query, it will
 // return ErrNotFound
 func first(db *gorm.DB, dst interface{}) error {
 	err := db.First(dst).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return ErrNotFound
 	}
@@ -133,16 +159,18 @@ func first(db *gorm.DB, dst interface{}) error {
 func (us *UserService) Create(user *User) error {
 	pwBytes := []byte(user.Password + userPwPepper)
 	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	user.PasswordHash = string(hashedBytes) // convert byteslice to string
 	user.Password = ""
 
 	if user.Remember == "" {
 		token, err := rand.RememberToken()
-		user.RememberHash =  us.hmac.Hash(token)
+		user.RememberHash = us.hmac.Hash(token)
 		if err != nil {
-			return err;
+			return err
 		}
 
 		user.Remember = token
@@ -167,7 +195,7 @@ func (us *UserService) Delete(id uint) error {
 		return ErrInvalidID
 	}
 
-	user := User{ Model: gorm.Model{ ID: id }}
+	user := User{Model: gorm.Model{ID: id}}
 	return us.db.Delete(&user).Error
 }
 
@@ -179,7 +207,7 @@ func (us *UserService) Close() error {
 // DestructiveReset drops the user table and rebuilds it
 func (us *UserService) DestructiveReset() error {
 	if err := us.db.DropTableIfExists(&User{}).Error; err != nil {
-		return err;
+		return err
 	}
 
 	return us.AutoMigrate()
@@ -193,10 +221,10 @@ func (us *UserService) AutoMigrate() error {
 
 type User struct {
 	gorm.Model
-	Name 		 string
-	Email	  	 string `gorm:"not null;unique_index"`
-	Password 	 string `gorm:"-"` // ignore in DB
+	Name         string
+	Email        string `gorm:"not null;unique_index"`
+	Password     string `gorm:"-"` // ignore in DB
 	PasswordHash string `gorm:"not null"`
-	Remember 	 string `gorm:"-"`
+	Remember     string `gorm:"-"`
 	RememberHash string `gorm:"not null;unique_index"`
 }
