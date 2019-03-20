@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"../photofriends/controllers"
+	"../photofriends/middelware"
 	"../photofriends/models"
 
 	"github.com/gorilla/mux"
@@ -32,6 +33,9 @@ func main() {
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUsers(services.User)
 	galleriesC := controllers.NewGalleries(services.Gallery)
+	requireUserMw := middelware.RequireUser{
+		UserService: services.User,
+	}
 
 	// router & path config
 	// note the "Methods", it specify that
@@ -46,8 +50,8 @@ func main() {
 	router.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
 
 	// gallery routes
-	router.Handle("/galleries/new", galleriesC.New).Methods("GET")
-	router.HandleFunc("/galleries", galleriesC.Create).Methods("POST")
+	router.Handle("/galleries/new", requireUserMw.Apply(galleriesC.New)).Methods("GET")
+	router.HandleFunc("/galleries", requireUserMw.ApplyFn(galleriesC.Create)).Methods("POST")
 
 	http.ListenAndServe(":3000", router) // port to serve (nil = NULLPOINTER)
 }
