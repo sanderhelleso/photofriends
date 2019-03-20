@@ -47,6 +47,7 @@ func main() {
 
 	// gallery routes
 	router.Handle("/galleries/new", galleriesC.New).Methods("GET")
+	router.HandleFunc("/galleries", galleriesC.Create).Methods("POST")
 
 	http.ListenAndServe(":3000", router) // port to serve (nil = NULLPOINTER)
 }
