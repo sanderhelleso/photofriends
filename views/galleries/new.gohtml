@@ -1,0 +1,13 @@
+{{define "yield"}}
+<form action="/galleries" method="POST">
+    <div class="field">
+        <label for="title" class="label">Title</label>
+        <div class="control">
+            <input class="input" type="text" name="title" placeholder="My cool gallery">
+        </div>
+    </div>
+    <div class="control">
+        <button class="button is-link">Create</button>
+    </div>
+</form>
+{{end}}

@@ -31,6 +31,7 @@ func main() {
 
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUsers(services.User)
+	galleriesC := controllers.NewGalleries(services.Gallery)
 
 	// router & path config
 	// note the "Methods", it specify that
@@ -43,6 +44,10 @@ func main() {
 	router.Handle("/login", usersC.LoginView).Methods("GET")
 	router.HandleFunc("/login", usersC.Login).Methods("POST")
 	router.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
+
+	// gallery routes
+	router.Handle("/galleries/new", galleriesC.New).Methods("GET")
+
 	http.ListenAndServe(":3000", router) // port to serve (nil = NULLPOINTER)
 }
 
