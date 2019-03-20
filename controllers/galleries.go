@@ -6,6 +6,7 @@ import (
 
 	"../../photofriends/models"
 	"../../photofriends/views"
+	"../context"
 	"github.com/gorilla/schema"
 )
 
@@ -34,11 +35,18 @@ func (g *Galleries) Create(res http.ResponseWriter, req *http.Request) {
 	dec := schema.NewDecoder()
 	var form GalleryForm
 	if err := dec.Decode(&form, req.PostForm); err != nil {
-		panic(err)
+		return
+	}
+
+	user := context.User(req.Context())
+	if user == nil {
+		http.Redirect(res, req, "/login", http.StatusFound)
+		return
 	}
 
 	gallery := models.Gallery{
-		Title: form.Title,
+		Title:  form.Title,
+		UserID: user.ID,
 	}
 
 	if err := g.gs.Create(&gallery); err != nil {

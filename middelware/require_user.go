@@ -1,9 +1,9 @@
 package middelware
 
 import (
-	"fmt"
 	"net/http"
 
+	"../context"
 	"../models"
 )
 
@@ -28,7 +28,11 @@ func (mw *RequireUser) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(res, req, "/login", http.StatusFound)
 			return
 		}
-		fmt.Println(user)
+
+		// apply user to request context
+		ctx := req.Context()
+		ctx = context.WithUser(ctx, user)
+		req = req.WithContext(ctx)
 
 		next(res, req)
 	})
